@@ -67,6 +67,8 @@ stages:
 
 - stage: Test
   displayName: Test stage
+  dependsOn: Build
+  condition: succeeded()
 
   jobs:
   - job: Test
@@ -134,7 +136,7 @@ stages:
 
 - stage: Deploy
   displayName: Deploy stage
-  dependsOn: Build
+  dependsOn: Test
   condition: succeeded()
 
   jobs:
