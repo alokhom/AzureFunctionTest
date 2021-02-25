@@ -65,6 +65,73 @@ stages:
     - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
       artifact: drop
 
+- stage: Test
+  displayName: Test stage
+
+  jobs:
+  - job: Test
+    displayName: Test
+    pool:
+      vmImage: $(vmImageName)
+    strategy:
+      matrix:
+        Python27:
+          python.version: '2.7'
+        Python35:
+          python.version: '3.5'
+        Python36:
+          python.version: '3.6'
+        Python37:
+          python.version: '3.7'
+    
+    steps:
+    - bash: |
+        python -m venv worker_venv
+        source worker_venv/bin/activate
+        python -m pip install flake8
+        flake8 .
+      workingDirectory: $(workingDirectory)
+      displayName: 'Run lint tests'
+
+    - bash: |
+        python -m venv worker_venv
+        source worker_venv/bin/activate
+        pip install pytest
+        pip install pytest-cov
+        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+      workingDirectory: $(workingDirectory)
+      displayName: 'Test with pytest'
+    - task: UsePythonVersion@0
+      displayName: 'Use Python $(python.version)'
+      inputs:
+        versionSpec: '$(python.version)'
+
+    - bash: |
+        python -m venv worker_venv
+        source worker_venv/bin/activate
+        pip install tox
+      workingDirectory: $(workingDirectory)
+      displayName: 'Install Tox'
+
+    - bash: |
+        python -m venv worker_venv
+        source worker_venv/bin/activate
+        tox -e py
+      workingDirectory: $(workingDirectory)
+      displayName: 'Run Tox'
+    
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/test-*.xml'
+        testRunTitle: 'Publish test results for Python $(python.version)'
+
+    - task: PublishCodeCoverageResults@1
+      inputs:
+        codeCoverageTool: Cobertura
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
+        reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
+
 - stage: Deploy
   displayName: Deploy stage
   dependsOn: Build
