@@ -91,7 +91,7 @@ stages:
         python -m venv worker_venv
         source worker_venv/bin/activate
         python -m pip install flake8
-        flake8 .
+        #flake8 .
       workingDirectory: $(workingDirectory)
       displayName: 'Run lint tests'
 
