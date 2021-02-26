@@ -90,6 +90,7 @@ stages:
     - bash: |
         python -m venv worker_venv
         source worker_venv/bin/activate
+        pip install -r requirements.txt
         python -m pip install flake8
         #flake8 .
       workingDirectory: $(workingDirectory)
@@ -98,12 +99,14 @@ stages:
     - bash: |
         python -m venv worker_venv
         source worker_venv/bin/activate
+        pip install -r requirements.txt
         pip install pytest
         pip install pytest-cov
         mkdir -p tests
-        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+        pytest tests/ --doctest-modules --junitxml=junit/test-results.xml --cov=HttpExample --cov-report=xml --cov-report=html
       workingDirectory: $(workingDirectory)
       displayName: 'Test with pytest'
+
     - task: UsePythonVersion@0
       displayName: 'Use Python $(python.version)'
       inputs:
@@ -112,6 +115,7 @@ stages:
     - bash: |
         python -m venv worker_venv
         source worker_venv/bin/activate
+        pip install -r requirements.txt
         pip install tox
       workingDirectory: $(workingDirectory)
       displayName: 'Install Tox'
@@ -119,6 +123,7 @@ stages:
     - bash: |
         python -m venv worker_venv
         source worker_venv/bin/activate
+        pip install -r requirements.txt
         tox -e py
       workingDirectory: $(workingDirectory)
       displayName: 'Run Tox'
