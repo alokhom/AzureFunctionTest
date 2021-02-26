@@ -2,8 +2,7 @@
 import unittest
 
 import azure.functions as func
-
-ROOT_PATH = pathlib.Path(__file__).parent.parent
+from HttpExample import main
 
 class TestFunction(unittest.TestCase):
     def test_HttpExample(self):
