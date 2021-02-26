@@ -2,7 +2,7 @@
 import unittest
 
 import azure.functions as func
-from __app__.HttpTrigger import HttpExample
+from HttpExample import main
 
 class TestFunction(unittest.TestCase):
     def test_HttpExample(self):
