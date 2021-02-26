@@ -136,7 +136,7 @@ az resource update -g <resource_group> -n <function_app_name>/config/web --set p
 ```
 az resource update --resource-type Microsoft.Web/sites -g <RESOURCE_GROUP> -n <FUNCTION_APP-NAME>/config/web --set properties.functionAppScaleLimit=<SCALE_LIMIT>
 ```
-There are many aspects of a function app that impacts how it scales, including host configuration, runtime footprint, and resource efficiency. 
+*  There are many aspects of a function app that impacts how it scales, including host configuration, runtime footprint, and resource efficiency. 
 You should also be aware of how connections behave as your function app scale
 -----------
 * Share and manage connections
