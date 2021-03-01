@@ -82,6 +82,7 @@ What scripting language(s) did you choose and why?
 *  Lesser lines of code. 
 *  strong community support 
 *  portability. 
+*  low memory footprint in some python libraries like NumPy.
 
 
 **Question 6**
