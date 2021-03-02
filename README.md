@@ -103,7 +103,7 @@ What choices did you make regarding container hosting on Azure, and why?
 consumption plan - 
 It can help you pay when functions are running. Almost no memory/CPU consumed in this plan. Depends on length of function and frequency of computing. 
 
-One can check Premium plans or Dedicated plans and opt for features of geo redundancy. There also there should be a purpose to meet coming from Architectural view points. 
+One can check Premium plans or Dedicated plans and opt for features of geo distribution. There also there should be a purpose to meet coming from Architectural view points. 
 
 
 
