@@ -139,6 +139,7 @@ If you're unable to build your application following the Twelve-Factor App princ
 * Docker Desktop /minikube / VS Docker tooking / VS code docket tooling - are good examples or local tooling. Along with Visual Studio Docker Tooling, you can choose Docker support*
 
 *  you can wrap Azure Functions inside Docker containers and deploy them using the same processes and tools as the rest of your Kubernetes-based app. You'll need a custom image that supports dependencies or a configuration not supported by the default image. In these cases, it makes sense to deploy your function in a custom Docker container . if you deploy your function to a Kubernetes cluster, you'll no longer benefit from the built-in scaling provided by Azure Functions. You'll need to use Kubernetes' scaling features *
+------
 * With Docker * 
 ```
 func init ProjectName --worker-runtime dotnet --docker
@@ -168,7 +169,7 @@ Copy the deployment webhook URL to the clipboard.
 Open Docker Hub, sign in, and select Repositories on the nav bar. Locate and select image, select the Webhooks tab, specify a Webhook name, paste your URL in Webhook URL, and then select Create:
 With the webhook set, Azure Functions redeploys your image whenever you update it in Docker Hub
 ```
-
+------
 * with AKS *
 
 ![image](https://user-images.githubusercontent.com/12021776/109802892-a4c36a80-7c20-11eb-9481-0e8f0291d218.png)
