@@ -132,8 +132,10 @@ Can you sketch a plan for scaling containerized Azure functions hosted in Azure 
 ```
 az resource update -g <resource_group> -n <function_app_name>/config/web --set properties.preWarmedInstanceCount=<desired_prewarmed_count> --resource-type Microsoft.Web/sites
 ```
+
 * app scale limit 
 * functionAppScaleLimit can be set to 0 or null for unrestricted
+
 ```
 az resource update --resource-type Microsoft.Web/sites -g <RESOURCE_GROUP> -n <FUNCTION_APP-NAME>/config/web --set properties.functionAppScaleLimit=<SCALE_LIMIT>
 ```
