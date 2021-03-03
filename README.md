@@ -139,6 +139,7 @@ If you're unable to build your application following the Twelve-Factor App princ
 * Docker Desktop /minikube / VS Docker tooking / VS code docket tooling - are good examples or local tooling. Along with Visual Studio Docker Tooling, you can choose Docker support*
 
 *  you can wrap Azure Functions inside Docker containers and deploy them using the same processes and tools as the rest of your Kubernetes-based app. You'll need a custom image that supports dependencies or a configuration not supported by the default image. In these cases, it makes sense to deploy your function in a custom Docker container . if you deploy your function to a Kubernetes cluster, you'll no longer benefit from the built-in scaling provided by Azure Functions. You'll need to use Kubernetes' scaling features *
+* With Docker * 
 ```
 func init ProjectName --worker-runtime dotnet --docker
 ```
@@ -168,7 +169,41 @@ Open Docker Hub, sign in, and select Repositories on the nav bar. Locate and sel
 With the webhook set, Azure Functions redeploys your image whenever you update it in Docker Hub
 ```
 
+* with AKS *
+
 ![image](https://user-images.githubusercontent.com/12021776/109802892-a4c36a80-7c20-11eb-9481-0e8f0291d218.png)
+
+``` 
+
+# First create a resource group
+az group create --name myResourceGroup --location eastus
+
+# Now create the AKS cluster and enable the cluster autoscaler
+az aks create \
+  --resource-group myResourceGroup \
+  --name myAKSCluster \
+  --node-count 1 \
+  --vm-set-type VirtualMachineScaleSets \
+  --load-balancer-sku standard \
+  --enable-cluster-autoscaler \
+  --min-count 1 \
+  --max-count 3
+  
+
+func init --docker-only
+
+To build an image and deploy your functions to Kubernetes, run the following command:
+docker login
+func kubernetes deploy --name <name-of-function-deployment> --registry <container-registry-username>
+
+The deploy command executes a series of actions:
+The Dockerfile created earlier is used to build a local image for the function app.
+The local image is tagged and pushed to the container registry where the user is logged in.
+A manifest is created and applied to the cluster that defines a Kubernetes Deployment resource, a ScaledObject resource, and Secrets, which includes environment variables imported from your local.settings.json file.
+
+```
+
+
 
 * scaling up using AKS - Scaling up a cloud-native application involves choosing more capable resources from the cloud vendor. For example, you can a new node pool with larger VMs in your Kubernetes cluster. Then, migrate your containerized services to the new pool.
 * scaling out in AKS - Cloud-native applications often experience large fluctuations in demand and require scale on a moment's notice. They favor scaling out. Scaling out is done horizontally by adding additional machines (called nodes) or application instances to an existing cluster. In Kubernetes, you can scale manually by adjusting configuration settings for the app (for example, scaling a node pool), or through autoscaling. AKS clusters can autoscale in one of two ways:
@@ -178,6 +213,12 @@ First, the Horizontal Pod Autoscaler monitors resource demand and automatically 
 Next, the AKS Cluster Autoscaler feature enables you to automatically scale compute nodes across a Kubernetes cluster to meet demand. With it, you can automatically add new VMs to the underlying Azure Virtual Machine Scale Set whenever more compute capacity of is required. It also removes nodes when no longer required. 
 
 Working together, both ensure an optimal number of container instances and compute nodes to support fluctuating demand. The horizontal pod autoscaler optimizes the number of pods required. The cluster autoscaler optimizes the number of nodes required. 
+
+Both the horizontal pod autoscaler and cluster autoscaler can also decrease the number of pods and nodes as needed. The cluster autoscaler decreases the number of nodes when there has been unused capacity for a period of time. Pods on a node to be removed by the cluster autoscaler are safely scheduled elsewhere in the cluster. The cluster autoscaler may be unable to scale down if pods can't move, such as in the following situations:
+
+A pod is directly created and isn't backed by a controller object, such as a deployment or replica set.
+A pod disruption budget (PDB) is too restrictive and doesn't allow the number of pods to be fall below a certain threshold.
+A pod uses node selectors or anti-affinity that can't be honored if scheduled on a different node.
 
 Aside from Azure Kubernetes Service (AKS), you can also deploy containers to Azure App Service for Containers and Azure Container Instances. *
 
