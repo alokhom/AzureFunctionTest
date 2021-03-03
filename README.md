@@ -170,8 +170,6 @@ With the webhook set, Azure Functions redeploys your image whenever you update i
 
 ![image](https://user-images.githubusercontent.com/12021776/109802892-a4c36a80-7c20-11eb-9481-0e8f0291d218.png)
 
-
-* Scaling containers and serverless applications *
 * scaling up using AKS - Scaling up a cloud-native application involves choosing more capable resources from the cloud vendor. For example, you can a new node pool with larger VMs in your Kubernetes cluster. Then, migrate your containerized services to the new pool.
 * scaling out in AKS - Cloud-native applications often experience large fluctuations in demand and require scale on a moment's notice. They favor scaling out. Scaling out is done horizontally by adding additional machines (called nodes) or application instances to an existing cluster. In Kubernetes, you can scale manually by adjusting configuration settings for the app (for example, scaling a node pool), or through autoscaling. AKS clusters can autoscale in one of two ways:
 
