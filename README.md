@@ -130,33 +130,54 @@ You can configure Insights alert publish  on Microsoft Teams.
 Can you sketch a plan for scaling containerized Azure functions hosted in Azure with choices of tools and libraries?
 
 *Answer 9*
-* you can use this az cli command to instantly alter desired_prewarmed_count
+
+* Scaling containerized workloads is a key feature of container orchestrators. AKS supports automatic scaling across two dimensions: Container instances and compute nodes. Together they give AKS the ability to quickly and efficiently respond to spikes in demand and add additional resources. With the declarative approach, you create a configuration file, called a manifest, to describe what you want instead of what to do. Kubernetes reads the manifest and transforms your desired end state into actual end state. It helps in  reliable and repeatable deployments. The manifest file becomes a project artifact and is used in your CI/CD pipeline for automating Kubernetes deployments When using declarative configuration, you can preview the changes that will be made before committing them by using kubectl diff -f FOLDERNAME against the folder where your configuration files are located. Once you're sure you want to apply the changes, run kubectl apply -f FOLDERNAME. Add -R to recursively process a folder hierarchy. They instruct the Kubernetes deployment controller on how to deploy new changes, scale out load, or roll back to a previous revision. If a cluster is unstable, a declarative deployment will automatically return the cluster back to a desired state. For example, if a node should crash, the deployment mechanism will redeploy a replacement to achieve your desired state. It provides improved change control and better support for continuous deployment using a build and deploy pipeline*
+
+* When should you avoid using containers and orchestrators?
+If you're unable to build your application following the Twelve-Factor App principles, you should consider avoiding containers and orchestrators. In these cases, consider a VM-based hosting platform, or possibly some hybrid system. With it, you can always spin off certain pieces of functionality into separate containers or even serverless functions *
+
+* Docker Desktop /minikube / VS Docker tooking / VS code docket tooling - are good examples or local tooling. Along with Visual Studio Docker Tooling, you can choose Docker support*
+
+*  you can wrap Azure Functions inside Docker containers and deploy them using the same processes and tools as the rest of your Kubernetes-based app. You'll need a custom image that supports dependencies or a configuration not supported by the default image. In these cases, it makes sense to deploy your function in a custom Docker container . if you deploy your function to a Kubernetes cluster, you'll no longer benefit from the built-in scaling provided by Azure Functions. You'll need to use Kubernetes' scaling features *
 ```
-az resource update -g <resource_group> -n <function_app_name>/config/web --set properties.preWarmedInstanceCount=<desired_prewarmed_count> --resource-type Microsoft.Web/sites
+func init ProjectName --worker-runtime dotnet --docker
 ```
-* app scale limit 
-* functionAppScaleLimit can be set to 0 or null for unrestricted
+* --docker option generates a Dockerfile for the project  which defines a suitable custom container for use with Azure Functions and the selected runtime. * 
 ```
-az resource update --resource-type Microsoft.Web/sites -g <RESOURCE_GROUP> -n <FUNCTION_APP-NAME>/config/web --set properties.functionAppScaleLimit=<SCALE_LIMIT>
+docker build --tag <DOCKER_ID>/azurefunctionsimage:v1.0.0 .
+docker run -p 8080:80 -it <docker_id>/azurefunctionsimage:v1.0.0
+docker login
+docker push <docker_id>/azurefunctionsimage:v1.0.0
+az login
+az group create --name AzureFunctionsContainers-rg --location westeurope
+az storage account create --name <storage_name> --location westeurope --resource-group AzureFunctionsContainers-rg --sku Standard_LRS
+az functionapp plan create --resource-group AzureFunctionsContainers-rg --name myPremiumPlan --location westeurope --number-of-workers 1 --sku EP1 --is-linux
+az functionapp create --name <app_name> --storage-account <storage_name> --resource-group AzureFunctionsContainers-rg --plan myPremiumPlan --runtime <functions runtime stack> --deployment-container-image-name <docker_id>/azurefunctionsimage:v1.0.0
+
+display connection string an add the setting to the function app.
+az storage account show-connection-string --resource-group AzureFunctionsContainers-rg --name <storage_name> --query connectionString --output tsv
+az functionapp config appsettings set --name <app_name> --resource-group AzureFunctionsContainers-rg --settings AzureWebJobsStorage=<connection_string>
+
+Retrieve the function URL with the access (function) key by using the Azure portal, or by using the Azure CLI with the az rest command.)
+on Azure portal in Azure functions, select default (function key) and then copy the URL to the clipboard.
+Paste the function URL into your browser's address bar, adding the parameter &name=Azure to the end of this URL. 
+Enable CD to Azure
+az functionapp deployment container config --enable-cd --query CI_CD_URL --output tsv --name <app_name> --resource-group AzureFunctionsContainers-rg
+Copy the deployment webhook URL to the clipboard.
+Open Docker Hub, sign in, and select Repositories on the nav bar. Locate and select image, select the Webhooks tab, specify a Webhook name, paste your URL in Webhook URL, and then select Create:
+With the webhook set, Azure Functions redeploys your image whenever you update it in Docker Hub
 ```
-*  There are many aspects of a function app that impacts how it scales, including host configuration, runtime footprint, and resource efficiency. 
-You should also be aware of how connections behave as your function app scale
------------
-* Share and manage connections
 
-* Avoid sharing storage accounts
+* Scaling containers and serverless applications *
+* scaling up using AKS - Scaling up a cloud-native application involves choosing more capable resources from the cloud vendor. For example, you can a new node pool with larger VMs in your Kubernetes cluster. Then, migrate your containerized services to the new pool.
+* scaling out in AKS - Cloud-native applications often experience large fluctuations in demand and require scale on a moment's notice. They favor scaling out. Scaling out is done horizontally by adding additional machines (called nodes) or application instances to an existing cluster. In Kubernetes, you can scale manually by adjusting configuration settings for the app (for example, scaling a node pool), or through autoscaling. AKS clusters can autoscale in one of two ways:
 
-* Don't mix test and production code in the same function app. If you're using a function app in production, don't add test-related functions and resources to it. It can cause unexpected overhead during production code execution.
-Be careful what you load in your production function apps. Memory is averaged across each function in the app.
+First, the Horizontal Pod Autoscaler monitors resource demand and automatically scales your POD replicas to meet it. When traffic increases, additional replicas are automatically provisioned to scale out your services. Likewise, when demand decreases, they're removed to scale-in your services. You define the metric on which to scale, for example, CPU usage. You can also specify the minimum and maximum number of replicas to run. AKS monitors that metric and scales accordingly.
 
-* Use async code but avoid blocking calls. Asynchronous programming is a recommended best practice, especially when blocking I/O operations are involved.
+Next, the AKS Cluster Autoscaler feature enables you to automatically scale compute nodes across a Kubernetes cluster to meet demand. With it, you can automatically add new VMs to the underlying Azure Virtual Machine Scale Set whenever more compute capacity of is required. It also removes nodes when no longer required. 
 
-* Use multiple worker processes. To improve performance, especially with single-threaded runtimes like Python, use the FUNCTIONS_WORKER_PROCESS_COUNT to increase the number of worker processes per host (up to 10). Azure Functions then tries to evenly distribute simultaneous function invocations across these workers.
+Working together, both ensure an optimal number of container instances and compute nodes to support fluctuating demand. The horizontal pod autoscaler optimizes the number of pods required. The cluster autoscaler optimizes the number of nodes required. *
 
-* Receive messages in batch whenever possible. Some triggers like Event Hub enable receiving a batch of messages on a single invocation. Batching messages has much better performance. You can configure the max batch size in the host.json file.  you'll need to explicitly set the cardinality property in your function.json to many in order to enable batching
-
-* Configure host behaviors to better handle concurrency. The host.json file in the function app allows for configuration of host runtime and trigger behaviors. In addition to batching behaviors, you can manage concurrency for a number of triggers. Often adjusting the values in these options can help each instance scale appropriately for the demands of the invoked functions.Settings in the host.json file apply across all functions within the app, within a single instance of the function. For example, if you had a function app with two HTTP functions and maxConcurrentRequests requests set to 25, a request to either HTTP trigger would count towards the shared 25 concurrent requests. When that function app is scaled to 10 instances, the ten functions effectively allow 250 concurrent requests (10 instances * 25 concurrent requests per instance).
-  
 
 **Question 10**
 
